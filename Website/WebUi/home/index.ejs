@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOPZ SNIFF | Features</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+    --primary: #7289da;
+    --primary-hover: #5865f2;
+    --primary-light: rgba(114, 137, 218, 0.1);
+    --secondary: #7289da;
+    --success: #57f287;
+    --error: #ed4245;
+    --text: #ffffff;
+    --text-secondary: #b9bbbe;
+    --text-muted: #72767d;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --card-bg: rgba(47, 49, 54, 0.6);
+    --card-hover: rgba(47, 49, 54, 0.8);
+    --dark: #2f3136;
+    --darker: #202225;
+    --darkest: #36393f;
+    --glass: rgba(47, 49, 54, 0.4);
+    --input-bg: rgba(64, 68, 75, 0.6);
+}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #202225 0%, #2f3136 50%, #36393f 100%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+        /* Navigation Styles */
+        .navbar {
+    background: rgba(32, 34, 37, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+        .navbar.scrolled {
+    background: rgba(32, 34, 37, 0.98);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+        .nav-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        }
+
+        .nav-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .auth-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: var(--text);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+        }
+
+        .auth-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .auth-btn:hover::before {
+            left: 100%;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 8rem 2rem 4rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: linear-gradient(135deg, var(--text), var(--text-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .section-title i {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Table Styles */
+        .table-container {
+    background: rgba(47, 49, 54, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+        .features-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .features-table th {
+    background: rgba(32, 34, 37, 0.9);
+    padding: 1.5rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+        .features-table td {
+            padding: 1.25rem 1rem;
+            font-size: 0.95rem;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .features-table tr:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .features-table tr:hover td {
+            transform: scale(1.02);
+        }
+
+        .check-icon {
+            color: var(--success);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+        }
+
+        .x-icon {
+            color: var(--error);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.3));
+        }
+
+        /* Grid Styles */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+    background: rgba(47, 49, 54, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+    transform: translateY(-8px);
+    border-color: var(--border-hover);
+    background: rgba(47, 49, 54, 0.9);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .platform-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error States */
+        .error-card {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--error);
+            text-align: center;
+            padding: 3rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(32, 34, 37, 0.98);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        padding: 2rem;
+        border-bottom: 1px solid var(--border);
+        gap: 1rem;
+    }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .container {
+                padding: 7rem 1rem 2rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .features-table {
+                font-size: 0.85rem;
+            }
+
+            .features-table th,
+            .features-table td {
+                padding: 1rem 0.5rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-content {
+                padding: 0 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .features-table th,
+            .features-table td {
+                padding: 0.75rem 0.25rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                <i class="bi bi-shield-check"></i>
+                ZOPZ SNIFF
+            </a>
+            <div class="nav-links" id="navLinks">
+                <button class="nav-btn active" onclick="showSection('features')" id="featuresBtn">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    Features
+                </button>
+                <button class="nav-btn" onclick="showSection('filters')" id="filtersBtn">
+                    <i class="bi bi-funnel"></i>
+                    Filters
+                </button>
+                <a href="/auth/" class="auth-btn">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Login
+                </a>
+            </div>
+            <button class="nav-btn mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="features-section" class="section">
+            <h2 class="section-title">
+                <i class="bi bi-stars"></i>
+                Feature Comparison
+            </h2>
+            <div class="table-container">
+                <table class="features-table">
+                    <thead>
+                        <tr>
+                            <th>Features</th>
+                            <th>ZOPZ SNIFF</th>
+                            <th>OctoSniff</th>
+                            <th>ConsoleSniffer</th>
+                            <th>WireShark</th>
+                            <th>LANC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="features-tbody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading features...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="filters-section" class="section" style="display: none;">
+            <h2 class="section-title">
+                <i class="bi bi-funnel"></i>
+                Available Filters
+            </h2>
+            <div class="grid" id="filters-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading filters...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const features = [
+            { name: "PS4 Username AI", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "PS3 Username AI", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "PC Username AI", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Xbox One Gamertag AI", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Dynamic Packet Filters", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Custom Packet Filters", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Premium Geo IP Lookup", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Username/GT To IP Lookup", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "IP To Username/GT", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "DDoS Protection Lookup", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Customizable Interface", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Capture All IP's", ZOPZSNIFF: true, octo: true, console: false, wire: true, lanc: true },
+            { name: "Discord Presence", ZOPZSNIFF: true, octo: true, console: false, wire: false, lanc: false },
+            { name: "Xbox Party Tool", ZOPZSNIFF: true, octo: false, console: false, wire: false, lanc: false },
+            { name: "Rec Room Tool", ZOPZSNIFF: true, octo: false, console: false, wire: false, lanc: false }
+        ];
+
+        // Initialize features table
+        function initFeatures() {
+            const tbody = document.getElementById('features-tbody');
+            setTimeout(() => {
+                tbody.innerHTML = features.map((feature, index) => `
+                    <tr style="animation-delay: ${index * 0.05}s">
+                        <td><strong>${feature.name}</strong></td>
+                        <td>${feature.ZOPZSNIFF ? '<i class="bi bi-check-circle-fill check-icon"></i>' : '<i class="bi bi-x-circle-fill x-icon"></i>'}</td>
+                        <td>${feature.octo ? '<i class="bi bi-check-circle-fill check-icon"></i>' : '<i class="bi bi-x-circle-fill x-icon"></i>'}</td>
+                        <td>${feature.console ? '<i class="bi bi-check-circle-fill check-icon"></i>' : '<i class="bi bi-x-circle-fill x-icon"></i>'}</td>
+                        <td>${feature.wire ? '<i class="bi bi-check-circle-fill check-icon"></i>' : '<i class="bi bi-x-circle-fill x-icon"></i>'}</td>
+                        <td>${feature.lanc ? '<i class="bi bi-check-circle-fill check-icon"></i>' : '<i class="bi bi-x-circle-fill x-icon"></i>'}</td>
+                    </tr>
+                `).join('');
+            }, 500);
+        }
+
+        // Show section function
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            
+            // Show selected section
+            document.getElementById(`${section}-section`).style.display = 'block';
+            
+            // Update active button
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${section}Btn`).classList.add('active');
+            
+            // Load filters if needed
+            if (section === 'filters') {
+                loadFilters();
+            }
+        }
+
+        // Load filters function
+        async function loadFilters() {
+            const grid = document.getElementById('filters-grid');
+            
+            try {
+                const response = await fetch('https://zopzsniff.xyz/assets/zopzfiles/onlinefilters.json');
+                if (!response.ok) throw new Error('Failed to load filters');
+                
+                const filters = await response.json();
+                displayFilters(filters);
+            } catch (error) {
+                console.error('Error loading filters:', error);
+                grid.innerHTML = `
+                    <div class="card error-card">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3>Failed to Load Filters</h3>
+                        <p>Unable to fetch filter data. Please check your connection and try again.</p>
+                        <button onclick="loadFilters()" class="auth-btn" style="margin-top: 1rem;">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Display filters function
+        function displayFilters(filters) {
+            const grid = document.getElementById('filters-grid');
+            grid.innerHTML = filters.map((filter, index) => `
+                <div class="card" style="animation-delay: ${index * 0.1}s">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">${filter.name}</h3>
+                            <span class="platform-badge">${filter.platform}</span>
+                        </div>
+                    </div>
+                    <p class="card-description">${filter.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initFeatures();
+            showSection('features');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const navLinks = document.getElementById('navLinks');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                navLinks.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --ext js,ejs index.js"
+  },
+  "dependencies": {
+    "argon2": "^0.41.1",
+    "axios": "^1.7.9",
+    "base64-js": "^1.5.1",
+    "base64js": "^1.0.1",
+    "body-parser": "^1.20.3",
+    "connect-redis": "^7.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.17.1",
+    "express-session": "^1.18.1",
+    "https-proxy-agent": "^7.0.6",
+    "mongodb": "^6.13.0",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.7.0",
+    "nodemon": "^3.1.9",
+    "redis": "^4.7.0",
+    "request-ip": "^3.3.0",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,0 +1,70 @@
+<div class="container mt-4">
+    <h2 class="text-center">Chat</h2>
+    <ul id="messages" class="list-group mb-3" style="height: 300px; overflow-y: auto;"></ul>
+    <form id="chat-form" class="form-inline">
+        <div class="input-group flex-grow-1">
+            <input id="m" class="form-control mr-2" autocomplete="off" placeholder="Type a message..." required>
+            <div class="input-group-append">
+                <input type="submit" class="btn btn-primary" value="Send">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        const authToken = Cookies.get('authorization');
+        console.log(authToken);
+        const socket = io("/chat", {
+            path: "/chat/ws",
+            addTrailingSlash: false,
+            extraHeaders: {
+                "Authorization": authToken 
+            },
+        });
+
+        socket.on('connect', function () {
+            socket.emit("joinRoom", "zopzsniff");
+            console.log('Connected to chat server');
+        });
+
+        socket.on('disconnect', function () {
+            console.log('Disconnected from chat server');
+        });
+
+        socket.on("message", (msg) => {
+            console.log("New message:", msg); 
+
+            const messages = document.getElementById('messages');
+            const li = document.createElement('li');
+            li.className = "list-group-item";
+            li.innerHTML = `<strong>${msg.poster}:</strong> ${msg.message}`; 
+            messages.appendChild(li);
+        });
+
+        socket.on("messages", (msgs) => {
+            console.log("New messages:", msgs);
+
+            for (const msg of msgs) {
+                const messages = document.getElementById('messages');
+                const li = document.createElement('li');
+                li.className = "list-group-item";  
+                messages.appendChild(li);
+            }
+        });
+
+        // Handle form submission
+        const chatForm = document.getElementById('chat-form');
+        chatForm.addEventListener('submit', function (event) {
+            event.preventDefault(); 
+
+            const input = document.getElementById('m');
+            const message = input.value;
+
+            socket.emit("sendMessage", message);
+
+            input.value = '';
+            input.focus(); 
+        });
+    })();
+</script>

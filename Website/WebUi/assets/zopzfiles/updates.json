@@ -1,0 +1,28 @@
+{
+  "updates": [
+    {
+      "title": "NPD Integration Added",
+      "description": "National Public Data search capability has been integrated to enhance address-based intelligence gathering with state-specific filtering.",
+      "timeAgo": "Just now",
+      "icon": "ti ti-database"
+    },
+    {
+      "title": "IntelX Integration Added",
+      "description": "We've successfully integrated IntelX to enhance our intelligence capabilities and provide more comprehensive search results.",
+      "timeAgo": "70 days ago",
+      "icon": "ti ti-world"
+    },
+    {
+      "title": "Leaderboard Feature Added",
+      "description": "A new leaderboard system has been implemented to track and display: "A new leaderboard system has been implemented to track and display top performers and most active users.",
+      "timeAgo": "70 days ago",
+      "icon": "ti ti-trophy"
+    },
+    {
+      "title": "Discord Data Expansion",
+      "description": "Tons more Discord ID to IP data has been added to our database, significantly expanding our coverage.",
+      "timeAgo": "70 days ago",
+      "icon": "ti ti-brand-discord"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+<% function programNav(programs) { %>
+    <% if (programs.includes("zopzsniff")) { %>
+    <a class="dropdown-item" href="../assets/zopzfiles/ZOPZ_SNIFF.exe">Download ZOPZ SNIFF</a>
+    <% } else { %>
+    <a class="dropdown-item" hx-get="/dash/order" hx-vals='{"program": "zopzsniff"}' hx-target="#htmxAlertContainer">Buy ZOPZ SNIFF</a>
+    <% } %>
+<% } %>
+
+<nav class="navbar navbar-expand-lg bg-primary mb-3" data-bs-theme="dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">ZOPZ SNIFF</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav me-auto">
+                <% if (user) { %>
+                <li class="nav-item">
+                    <a hx-trigger="load,click" hx-get="/dash/client" hx-target="#container" class="nav-link active" href="#">Dashboard
+                        <span class="visually-hidden">(current)</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Client</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" hx-get="/dash/client/settings" hx-target="#container">Settings</a>
+                        <%= programNav(user.programs) %>
+                    </div>
+                </li>
+                <% } %>
+                <% if (user.level > 1) { %>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle p-2" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" hx-get="/dash/admin/users/create/htmx" hx-target="#container">Users</a>
+                    </div>
+                </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>

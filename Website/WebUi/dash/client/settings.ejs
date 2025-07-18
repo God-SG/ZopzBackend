@@ -1,0 +1,49 @@
+<% function renderProgramList(programs) { %>
+<div class="container mt-5">
+    <div class="row">
+        <% programs.forEach(function(program) { %>
+        <div class="col-lg-4 mb-4"> 
+            <form>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><%= program.name %></h5>
+                        <p class="card-text">
+                            <strong>Last Reset:</strong> <%= new Date(program.last_reset).toISOString().replace('T', ' ').substring(0, 19) %><br>
+                            <strong>Expiry:</strong> <%= new Date(program.expiry).toISOString().replace('T', ' ').substring(0, 19) %>
+                        </p>
+                        <input type="hidden" value="<%= program.name %>" name="program">
+                        <button class="btn btn-warning" hx-post="/dash/client/reset/hardware"
+                                hx-target="#htmxAlertContainer" hx-disabled-elt="this" hx-indicator="#htmxLoadingContainer">Reset HWID</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <% }); %>
+    </div>
+</div>
+<% } %>
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>User Management</h3>
+        </div>
+        <div class="card-body">
+            <form>
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="text" class="form-control" name="currentPassword" id="currentPassword" placeholder="Current Password" required>
+                </div>
+                <div class="form-group mb-2">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter a new password">
+                </div>
+                <button type="submit" class="btn btn-primary" hx-post="/dash/client/reset/password"
+                        hx-target="#htmxAlertContainer" hx-disabled-elt="this" hx-indicator="#htmxLoadingContainer">Reset Password</button>
+            </form>
+            <ul class="list-group">
+                <%= renderProgramList(user.programs) %>
+            </ul>
+        </div>
+    </div>
+</div>

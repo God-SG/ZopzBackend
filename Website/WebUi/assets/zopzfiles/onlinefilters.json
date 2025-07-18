@@ -1,0 +1,691 @@
+[
+  {
+    "name": "FiveM (Server)",
+    "platform": "Universal",
+    "type": "TCP",
+    "description": "FiveM game server",
+    "options": [
+      {
+        "ports": [
+          "30120-30120"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "BO6 (Server)",
+    "platform": "Universal",
+    "description": "BO6 game server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "44998-44998"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Gta Nearest (Client)",
+    "platform": "Universal",
+    "description": "GTA nearest client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "6672-6672"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Schedule 1 (Client)",
+    "platform": "Universal",
+    "description": "Schedule 1 client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "55000-65500"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SCP (Server)",
+    "platform": "Universal",
+    "description": "SCP Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7777-7777"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "GTA Orb (Client)",
+    "platform": "Universal",
+    "description": "GTA Orb client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "6672-6672"
+        ],
+        "minimum_length": 427,
+        "maximum_length": 470
+      }
+    ]
+  },
+  {
+    "name": "UFC (Client)",
+    "platform": "Universal",
+    "description": "UFC client",
+    "type": "UDP",
+    "options": [
+      {
+        "payloads": [
+          "60 00 00 00 00 a4"
+        ],
+        "minimum_length": 100,
+        "maximum_length": 311
+      }
+    ]
+  },
+  {
+    "name": "Friday 13th (Host)",
+    "platform": "Universal",
+    "description": "Friday 13th host",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "28900-30000"
+        ],
+        "payloads": [
+          "0c 02"
+        ],
+        "minimum_length": 60,
+        "maximum_length": 200
+      }
+    ]
+  },
+  {
+    "name": "Psn Party (Client)",
+    "platform": "PlayStation 4",
+    "description": "PSN Party client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "46000-65535"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Minecraft (Server)",
+    "platform": "Universal",
+    "description": "Minecraft server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "19132-19132"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "AnyDesk (Client)",
+    "platform": "PC",
+    "description": "AnyDesk client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "2313-2313"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Roblox (Server)",
+    "platform": "Universal",
+    "description": "Roblox Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "1-65500"
+        ],
+        "isp": "Roblox"
+      }
+    ]
+  },
+  {
+    "name": "Roblox (Client)",
+    "platform": "Universal",
+    "description": "Roblox Client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3074-3074"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Pubg (Server)",
+    "platform": "Universal",
+    "description": "Pulls an Pubg Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "22000-30000"
+        ],
+        "payloads": [],
+        "minimum_length": 22,
+        "maximum_length": 64
+      }
+    ]
+  },
+  {
+    "name": "Rec room (Server)",
+    "platform": "Universal",
+    "description": "Pulls a Rec room Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7000-8000"
+        ],
+        "payloads": [],
+        "minimum_length": 20,
+        "maximum_length": 62
+      }
+    ]
+  },
+  {
+    "name": "Marvel Rivals (Server)",
+    "platform": "Universal",
+    "description": "Pulls a Marvel Rivals Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7000-9000"
+        ],
+        "payloads": []
+      }
+    ]
+  },
+  {
+    "name": "Discord (Server)",
+    "platform": "PC",
+    "description": "Pulls Discord",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "50000-50100"
+        ],
+        "payloads": []
+      }
+    ]
+  },
+  {
+    "name": "Telegram (Server)",
+    "platform": "PC",
+    "description": "Pulls Telegram",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "32000-32300"
+        ],
+        "payloads": []
+      }
+    ]
+  },
+  {
+    "name": "H1Z1 (Server)",
+    "platform": "Playstation",
+    "description": "H1Z1 server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "20040-20199"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Sea Of Thieves (Server)",
+    "platform": "Universal",
+    "description": "Sea of Thieves server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "30000-31000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Among Us (Server)",
+    "platform": "Universal",
+    "description": "Among Us server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3744-4500"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Battlefield (Server)",
+    "platform": "Universal",
+    "description": "Battlefield server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "10000-10999"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Far Cry 6 (Server)",
+    "platform": "Universal",
+    "description": "Far Cry 6 server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "14000-15000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Dayz (Server)",
+    "platform": "Universal",
+    "description": "Dayz server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "10000-10999"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Psn Party (Server)",
+    "platform": "PlayStation 4",
+    "description": "PSN Party server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3478-3478"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Snapchat (Server)",
+    "platform": "Mobile",
+    "description": "Snapchat",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "1-65500"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "VrChat (Server)",
+    "platform": "PC",
+    "description": "VrChat server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "5056-5056"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Csgo (Server)",
+    "platform": "Universal",
+    "description": "CS:GO server",
+    "type": "TCP",
+    "options": [
+      {
+        "ports": [
+          "27000-28000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Terraria (Server)",
+    "platform": "Universal",
+    "description": "Terraria server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Splitgate (Server)",
+    "platform": "Universal",
+    "description": "Splitgate server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Call of Duty® (Server)",
+    "platform": "Universal",
+    "description": "Call of Duty server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Zoom (Server)",
+    "platform": "PC",
+    "description": "Zoom Server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "8000-10000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "R6 (Server)",
+    "platform": "Universal",
+    "description": "Rainbow Six Siege server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Combatmaster (Server)",
+    "platform": "PC",
+    "description": "Combatmaster server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "30300-31000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Rust (Server)",
+    "platform": "Universal",
+    "description": "Rust server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Apex (Server)",
+    "platform": "Universal",
+    "description": "Apex Legends server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Garrysmod (Server)",
+    "platform": "Universal",
+    "description": "Garry's Mod server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "27000-45000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Fortnite (Server)",
+    "platform": "Universal",
+    "description": "Fortnite server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "9000-9100"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "MW2 (Client)",
+    "platform": "Universal",
+    "description": "MW2 client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3074-3074"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Xbox (Client)",
+    "platform": "Xbox",
+    "description": "Xbox client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3074-3074"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Overwatch (Server)",
+    "platform": "Universal",
+    "description": "Overwatch Servers",
+    "type": "UDP",
+    "options": [
+      {
+        "ip_regex": "^(24\\.105\\. | 64\\.224\\. | 30\\.129\\. | 62\\.129\\. | 54\\.207\\. | 107\\.12\\. | 185\\.60\\. | 114\\.159\\.)"
+      }
+    ]
+  },
+  {
+    "name": "T-Mobile (Client)",
+    "platform": "Universal",
+    "description": "T-Mobile Connection",
+    "type": "UDP",
+    "options": [
+      {
+        "ip_regex": "^162\\.(160|184|186|187|190|191)\\..+|^167\\.20\\..+|^168\\.73\\..+|^172\\.(32|56|58|59)\\..+"
+      }
+    ]
+  },
+  {
+    "name": "Xbox Party (Server)",
+    "platform": "Xbox",
+    "description": "Xbox Party",
+    "type": "UDP",
+    "options": [
+      {
+        "ip_regex": "^(20\\.|104\\.46\\.|40\\.79\\.|40\\.82\\.|51\\.12\\.|51\\.53\\.|51\\.103\\.|51\\.105\\.|51\\.116\\.|51\\.120\\.|51\\.138\\.|51\\.143\\.|52\\.136\\.|52\\.138\\.|52\\.139\\.|52\\.146\\.|52\\.182\\.|52\\.231\\.|102\\.37\\.|102\\.133\\.|191\\.238\\.|4\\.232\\.|13\\.66\\.|13\\.67\\.|13\\.69\\.|13\\.70\\.|13\\.71\\.|13\\.73\\.|13\\.74\\.|4\\.145\\.|4\\.149\\.|4\\.150\\.|4\\.151\\.|4\\.171\\.|4\\.190\\.|4\\.200\\.|4\\.202\\.|4\\.206\\.|4\\.207\\.|4\\.216\\.|4\\.218\\.|4\\.219\\.|4\\.220\\.|13\\.77\\.|13\\.78\\.|13\\.86\\.|13\\.106\\.|20\\.7\\.|20\\.10\\.|20\\.17\\.|20\\.21\\.|20\\.38\\.|20\\.42\\.|20\\.43\\.|20\\.44\\.|20\\.45\\.|20\\.47\\.|20\\.52\\.|20\\.53\\.|20\\.69\\.|20\\.85\\.|20\\.88\\.|20\\.90\\.|20\\.91\\.|20\\.92\\.|20\\.99\\.|20\\.105\\.|20\\.111\\.|20\\.116\\.|20\\.117\\.|20\\.118\\.|20\\.119\\.|20\\.125\\.|20\\.135\\.|20\\.150\\.|20\\.164\\.|20\\.167\\.|20\\.168\\.|20\\.170\\.|20\\.192\\.|20\\.193\\.|20\\.195\\.|20\\.199\\.|20\\.203\\.|20\\.204\\.|20\\.207\\.|20\\.208\\.|20\\.210\\.|20\\.213\\.|20\\.215\\.|20\\.217\\.|20\\.221\\.|20\\.225\\.|20\\.227\\.|20\\.228\\.|20\\.240\\.|20\\.244\\.|20\\.252\\.|23\\.97\\.|23\\.100\\.|40\\.64\\.|40\\.65\\.|40\\.69\\.|40\\.74\\.|40\\.83\\.|40\\.121\\.|51\\.53\\.|51\\.12\\.|51\\.53\\.|51\\.104\\.|51\\.107\\.|51\\.138\\.|51\\.140\\.|52\\.147\\.|52\\.160\\.)"
+      }
+    ]
+  },
+  {
+    "name": "BO3 (Client)",
+    "platform": "Universal",
+    "description": "Black Ops 3 client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3074-3074"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Finals (Server)",
+    "platform": "Universal",
+    "description": "The Finals server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7000-9100"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Rocket League (Server)",
+    "platform": "Universal",
+    "description": "Rocket League server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7000-9100"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Valorant (Server)",
+    "platform": "Universal",
+    "description": "Valorant server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "7000-9100"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RDR (Client)",
+    "platform": "Universal",
+    "description": "RDR client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "6672-6672"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "GTA V (Client)",
+    "platform": "Universal",
+    "description": "GTA V client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "6672-6672"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "WatchDogs (Client)",
+    "platform": "Universal",
+    "description": "Watch Dogs client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3000-5000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Warframe (Client)",
+    "platform": "Universal",
+    "description": "Warframe client",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "3000-5000"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "FIFA (Server)",
+    "platform": "Universal",
+    "description": "FIFA server",
+    "type": "UDP",
+    "options": [
+      {
+        "ports": [
+          "20000-25000"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "argon2": "^0.41.1",
+    "axios": "^1.7.9",
+    "base64-js": "^1.5.1",
+    "dotenv": "^16.4.7",
+    "https": "^1.0.0",
+    "mongodb": "^6.13.0",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOPZ SNIFF</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.8.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#7289da',
+                    secondary: '#5865f2',
+                    dark: {
+                        DEFAULT: '#1a1a1a',
+                        deeper: '#141414',
+                        card: '#202020'
+                    }
+                }
+            }
+        }
+    }
+
+    let dropdownTimeout;
+    let isRedeeming = false;
+    let currentTab = 'dashboard';
+    let userPrograms = JSON.stringify(user.programs);
+
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById(id);
+        const allDropdowns = document.querySelectorAll('[id$="Dropdown"]');
+        
+        if (dropdownTimeout) {
+            clearTimeout(dropdownTimeout);
+        }
+        
+        allDropdowns.forEach(menu => {
+            if (menu.id !== id) menu.classList.add('hidden');
+        });
+        
+        dropdown.classList.toggle('hidden');
+        
+        if (!dropdown.classList.contains('hidden')) {
+            dropdownTimeout = setTimeout(() => {
+                dropdown.classList.add('hidden');
+            }, 3000);
+        }
+    }
+
+    function closeAllDropdowns() {
+        const allDropdowns = document.querySelectorAll('[id$="Dropdown"]');
+        allDropdowns.forEach(menu => menu.classList.add('hidden'));
+        if (dropdownTimeout) {
+            clearTimeout(dropdownTimeout);
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-button')) {
+            closeAllDropdowns();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAllDropdowns();
+        }
+    });
+
+    function switchTab(tabName) {
+        currentTab = tabName;
+        
+        const tabContents = document.querySelectorAll('[id$="Tab"]');
+        tabContents.forEach(tab => tab.classList.add('hidden'));
+        
+        const selectedTab = document.getElementById(tabName + 'Tab');
+        if (selectedTab) {
+            selectedTab.classList.remove('hidden');
+        }
+        
+        const navButtons = document.querySelectorAll('.tab-nav-button');
+        navButtons.forEach(btn => {
+            btn.classList.remove('bg-primary/20', 'text-primary');
+            btn.classList.add('text-white', 'hover:text-primary');
+        });
+        
+        const activeButton = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+        if (activeButton) {
+            activeButton.classList.add('bg-primary/20', 'text-primary');
+            activeButton.classList.remove('text-white', 'hover:text-primary');
+        }
+        
+        closeAllDropdowns();
+    }
+
+    function updateDropdownContent() {
+        const hasZopzSniff = Array.isArray(userPrograms) && userPrograms.some(program => program.name === "zopzsniff");
+        
+        const clientDropdown = document.getElementById('clientDropdown');
+        if (clientDropdown) {
+            const downloadSection = clientDropdown.querySelector('.download-section');
+            if (downloadSection) {
+                if (hasZopzSniff) {
+                    downloadSection.innerHTML = `
+                        <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" href="../assets/zopzfiles/ZOPZ_SNIFF.exe">
+                            <i class="bi bi-download mr-2"></i>Download
+                        </a>
+                    `;
+                } else {
+                    downloadSection.innerHTML = `
+                        <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" target="_blank" data-sell-store="55876" data-sell-product="278367" data-sell-darkmode="true" data-sell-theme="">
+                            <i class="bi bi-cart mr-2"></i>Buy ZOPZ SNIFF
+                        </a>
+                    `;
+                }
+            }
+        }
+        
+        const mobileClientDropdown = document.getElementById('mobileClientDropdown');
+        if (mobileClientDropdown) {
+            const mobileDownloadSection = mobileClientDropdown.querySelector('.download-section');
+            if (mobileDownloadSection) {
+                if (hasZopzSniff) {
+                    mobileDownloadSection.innerHTML = `
+                        <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" href="../assets/zopzfiles/ZOPZ_SNIFF.exe">
+                            <i class="bi bi-download mr-2"></i>Download
+                        </a>
+                    `;
+                } else {
+                    mobileDownloadSection.innerHTML = `
+                        <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" target="_blank" data-sell-store="55876" data-sell-product="278367" data-sell-darkmode="true" data-sell-theme="">
+                            <i class="bi bi-cart mr-2"></i>Buy ZOPZ SNIFF
+                        </a>
+                    `;
+                }
+            }
+        }
+    }
+
+    function updateSettingsModal() {
+        const programsContainer = document.getElementById('programsContainer');
+        if (typeof userPrograms === 'string') {
+            try {
+                userPrograms = JSON.parse(userPrograms);
+            } catch (e) {
+                userPrograms = [];
+            }
+        }
+        
+        if (programsContainer && Array.isArray(userPrograms) && userPrograms.length > 0) {
+            programsContainer.innerHTML = userPrograms.map(program => `
+                <div class="bg-dark-card rounded-lg p-4 border border-white/10 hover:border-primary/30 transition-colors">
+                    <h5 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <i class="bi bi-app text-primary"></i>
+                        ${program.name}
+                    </h5>
+                    <div class="space-y-2 text-sm text-gray-400 mb-4">
+                        <p>
+                            <span class="inline-block w-24">Last Reset:</span>
+                            ${new Date(program.last_reset).toISOString().replace('T', ' ').substring(0, 19)}
+                        </p>
+                        <p>
+                            <span class="inline-block w-24">Expiry:</span>
+                            ${new Date(program.expiry).toISOString().replace('T', ' ').substring(0, 19)}
+                        </p>
+                    </div>
+                    <button class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2" onclick="toggleHWIDReset('${program.name}')">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Reset HWID
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    function openSettingsModal() {
+        closeAllDropdowns();
+        const modal = document.getElementById('settingsModal');
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        setTimeout(() => {
+            modal.querySelector('.modal-content').classList.remove('opacity-0', 'translate-y-4');
+            modal.querySelector('.modal-backdrop').classList.remove('opacity-0');
+        }, 50);
+    }
+
+    function closeSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.querySelector('.modal-content').classList.add('opacity-0', 'translate-y-4');
+        modal.querySelector('.modal-backdrop').classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }, 300);
+    }
+    
+    function Logout() {
+        closeAllDropdowns();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You will be logged out!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#7289da',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, log me out!',
+            background: '#1a1a1a',
+            customClass: {
+                popup: 'border border-white/10 rounded-xl',
+                title: 'text-white',
+                htmlContainer: 'text-gray-300',
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/dash/logout';
+            }
+        });
+    }
+    
+    function openRedeemModal() {
+        if (isRedeeming) {
+            return;
+        }
+        
+        closeAllDropdowns();
+        
+        Swal.fire({
+            title: 'Redeem Key',
+            html: `
+                <div class="p-4">
+                    <div class="mb-4">
+                        <input type="text" id="keyInput" 
+                               class="w-full px-4 py-2 bg-gray-800 border border-white/20 rounded-lg 
+                                      focus:ring-2 focus:ring-primary/50 focus:border-primary 
+                                      transition-colors text-white placeholder-gray-400" 
+                               placeholder="Enter your key">
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Redeem',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#7289da',
+            cancelButtonColor: '#6b7280',
+            background: '#1a1a1a',
+            customClass: {
+                popup: 'border border-white/10 rounded-xl',
+                title: 'text-white',
+                htmlContainer: 'text-gray-300',
+            },
+            didOpen: () => {
+                document.getElementById('keyInput').focus();
+            },
+            preConfirm: () => {
+                const key = document.getElementById('keyInput').value.trim();
+                if (!key) {
+                    Swal.showValidationMessage('Please enter a key');
+                    return false;
+                }
+                
+                isRedeeming = true;
+                Swal.showLoading();
+                
+                return fetch('/dash/actions/redeem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ key })
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({ data, status: response.status }));
+                    } else {
+                        return response.text().then(text => {
+                            try {
+                                const data = JSON.parse(text);
+                                return { data, status: response.status };
+                            } catch (e) {
+                                return { 
+                                    data: { 
+                                        success: response.ok, 
+                                        message: text || (response.ok ? 'Key redeemed successfully' : 'Failed to redeem key')
+                                    }, 
+                                    status: response.status 
+                                };
+                            }
+                        });
+                    }
+                })
+                .then(({ data, status }) => {
+                    if (status === 200 || data.success || data.message?.includes('successfully') || data.message?.includes('redeemed')) {
+                        return fetch('/dash/api/user', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(userResponse => userResponse.json())
+                        .then(userData => {
+                            if (userData.success && userData.user) {
+                                userPrograms = userData.user.programs || [];
+                                updateDropdownContent();
+                                updateSettingsModal();
+                                return { success: true, message: data.message || 'Key redeemed successfully!' };
+                            } else {
+                                return { success: true, message: data.message || 'Key redeemed successfully!' };
+                            }
+                        })
+                        .catch(error => {
+                            console.warn('Failed to fetch updated user data:', error);
+                            return { success: true, message: data.message || 'Key redeemed successfully!' };
+                        });
+                    } else {
+                        throw new Error(data.message || 'Failed to redeem key');
+                    }
+                })
+                .catch(error => {
+                    isRedeeming = false;
+                    Swal.showValidationMessage(error.message || 'Network error occurred');
+                    throw error;
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Key redeemed successfully! You can now download ZOPZ SNIFF from the Client menu.',
+                    icon: 'success',
+                    timer: 4000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Great!',
+                    confirmButtonColor: '#7289da',
+                    background: '#1a1a1a',
+                    customClass: {
+                        popup: 'border border-white/10 rounded-xl',
+                        title: 'text-white',
+                        htmlContainer: 'text-gray-300',
+                    }
+                }).then(() => {
+                    location.reload();
+                });
+            }
+            isRedeeming = false;
+        }).catch((error) => {
+            if (error !== 'cancel') {
+                console.error('Redemption error:', error);
+            }
+            isRedeeming = false;
+        });
+    }
+    
+    async function toggleHWIDReset(name) {
+        try {
+            const res = await fetch('/dash/client/reset/hardware', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ program: name })
+            });
+            
+            let data;
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    data = { 
+                        success: res.ok,
+                        message: text || (res.ok ? 'HWID reset successfully' : 'Failed to reset HWID')
+                    };
+                }
+            }
+            
+            if (res.status !== 200) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message || 'Failed to reset HWID',
+                    icon: 'error',
+                    confirmButtonColor: '#7289da',
+                    background: '#1a1a1a',
+                    customClass: {
+                        popup: 'border border-white/10 rounded-xl',
+                        title: 'text-white',
+                        htmlContainer: 'text-gray-300',
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message || 'HWID reset successfully',
+                    icon: 'success',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    confirmButtonColor: '#7289da',
+                    background: '#1a1a1a',
+                    customClass: {
+                        popup: 'border border-white/10 rounded-xl',
+                        title: 'text-white',
+                        htmlContainer: 'text-gray-300',
+                    }
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                title: 'Network Error!',
+                text: 'Failed to connect to server. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a',
+                customClass: {
+                    popup: 'border border-white/10 rounded-xl',
+                    title: 'text-white',
+                    htmlContainer: 'text-gray-300',
+                }
+            });
+        }
+    }
+
+    function showErrorDetails(errorId) {
+        const errorDetails = {
+            'auth-error': {
+                title: 'Authentication Error',
+                description: 'Login credentials are invalid or session has expired.',
+                solutions: [
+                    'Verify your username and password are correct',
+                    'Clear browser cache and cookies',
+                    'Check if your account is still active',
+                    'Try logging out and logging back in',
+                    'Contact support if the issue persists'
+                ]
+            },
+            'connection-error': {
+                title: 'Connection Error',
+                description: 'Unable to establish connection to ZOPZ SNIFF servers.',
+                solutions: [
+                    'Check your internet connection',
+                    'Disable VPN or proxy if enabled',
+                    'Allow ZOPZ SNIFF through Windows Firewall',
+                    'Try running as administrator',
+                    'Check if antivirus is blocking the connection'
+                ]
+            },
+            'npcap-error': {
+                title: 'Npcap Installation Error',
+                description: 'Npcap is not properly installed or configured.',
+                solutions: [
+                    'Download Npcap from official website',
+                    'Run installer as administrator',
+                    'Enable "WinPcap API-compatible Mode"',
+                    'Enable "Support raw 802.11 traffic"',
+                    'Restart your computer after installation'
+                ]
+            },
+            'permission-error': {
+                title: 'Permission Denied',
+                description: 'ZOPZ SNIFF requires administrator privileges to function.',
+                solutions: [
+                    'Right-click ZOPZ SNIFF and select "Run as administrator"',
+                    'Add ZOPZ SNIFF to antivirus exclusions',
+                    'Check Windows User Account Control settings',
+                    'Ensure you have admin rights on your computer'
+                ]
+            },
+            'windriver-error': {
+                title: 'WinDriver Error',
+                description: 'WinDriver service is not running or properly installed.',
+                solutions: [
+                    'Install Npcap with WinPcap compatibility mode',
+                    'Restart Windows after Npcap installation',
+                    'Run ZOPZ SNIFF as administrator',
+                    'Check Windows services for WinDriver',
+                    'Reinstall Npcap if the issue persists'
+                ]
+            },
+            'firewall-error': {
+                title: 'Firewall Blocking Connection',
+                description: 'Windows Firewall or antivirus is blocking ZOPZ SNIFF.',
+                solutions: [
+                    'Add ZOPZ SNIFF to Windows Firewall exceptions',
+                    'Add ZOPZ SNIFF to antivirus whitelist',
+                    'Temporarily disable firewall to test',
+                    'Check router firewall settings',
+                    'Contact your network administrator'
+                ]
+            }
+        };
+
+        const error = errorDetails[errorId];
+        if (error) {
+            Swal.fire({
+                title: error.title,
+                html: `
+                    <div class="text-left">
+                        <p class="mb-4 text-gray-300">${error.description}</p>
+                        <h4 class="text-primary font-semibold mb-2">Solutions:</h4>
+                        <ol class="list-decimal list-inside space-y-1 text-gray-300">
+                            ${error.solutions.map(solution => `<li>${solution}</li>`).join('')}
+                        </ol>
+                    </div>
+                `,
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a',
+                customClass: {
+                    popup: 'border border-white/10 rounded-xl',
+                    title: 'text-white',
+                    htmlContainer: 'text-gray-300',
+                }
+            });
+        }
+    }
+    function showResults(content, containerId = 'resultsContent') {
+        const resultsDiv = document.getElementById(containerId.replace('Content', ''));
+        const resultsContent = document.getElementById(containerId);
+        
+        if (resultsContent) {
+            resultsContent.innerHTML = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+        }
+        if (resultsDiv) {
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function getToken(tokenId = 'authToken') {
+        const token = document.getElementById(tokenId).value.trim();
+        if (!token) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter an authentication token first.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a',
+                customClass: {
+                    popup: 'border border-white/10 rounded-xl',
+                    title: 'text-white',
+                    htmlContainer: 'text-gray-300',
+                }
+            });
+            return null;
+        }
+        return token;
+    }
+    async function searchRecRoomAccount() {
+        const username = document.getElementById('recRoomSearchUsername').value.trim();
+        if (!username) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a username to search.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const token = getToken('recRoomAuthToken');
+            if (!token) return;
+            
+            const response = await fetch(`https://zopzsniff.xyz/accounts/${username}`, {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data) {
+                const searchResults = document.getElementById('recRoomSearchResults');
+                const accountInfo = document.getElementById('recRoomAccountInfo');
+                
+                accountInfo.innerHTML = `
+                    <div class="space-y-2">
+                        <p><span class="text-gray-400">Username:</span> <span class="text-white">${data.username || 'N/A'}</span></p>
+                        <p><span class="text-gray-400">Account ID:</span> <span class="text-white">${data.accountId || 'N/A'}</span></p>
+                        <p><span class="text-gray-400">Display Name:</span> <span class="text-white">${data.displayName || 'N/A'}</span></p>
+                        <p><span class="text-gray-400">Level:</span> <span class="text-white">${data.level || 'N/A'}</span></p>
+                    </div>
+                `;
+                
+                searchResults.classList.remove('hidden');
+                showResults(data, 'recRoomResultsContent');
+            } else {
+                showResults('Search failed: User not found', 'recRoomResultsContent');
+            }
+        } catch (error) {
+            showResults('Error searching account: ' + error.message, 'recRoomResultsContent');
+        }
+    }
+
+    async function reportRecRoomUser() {
+        const token = getToken('recRoomAuthToken');
+        if (!token) return;
+        
+        const playerId = document.getElementById('recRoomReportUserId').value.trim();
+        const category = document.getElementById('recRoomReportCategory').value;
+        const details = document.getElementById('recRoomReportDetails').value.trim();
+        
+        if (!playerId || !details) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please fill in all required fields.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/accounts/apis/api/PlayerReporting/v1/internal/create', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    ReportCategory: parseInt(category),
+                    PlayerIdReported: playerId,
+                    RoomId: "0",
+                    Details: details
+                })
+            });
+            
+            if (response.ok) {
+                showResults('Report submitted successfully', 'recRoomResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to submit report: ${errorText || response.statusText}`, 'recRoomResultsContent');
+            }
+        } catch (error) {
+            showResults('Error reporting user: ' + error.message, 'recRoomResultsContent');
+        }
+    }
+
+    async function sendRecRoomCheer() {
+        const token = getToken('recRoomAuthToken');
+        if (!token) return;
+        
+        const playerId = document.getElementById('recRoomTargetUserId').value.trim();
+        
+        if (!playerId) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a player ID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/api/PlayerCheer/v1/create', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    CheerCategory: 1,
+                    PlayerIdTo: parseInt(playerId)
+                })
+            });
+            
+            if (response.ok) {
+                showResults(`Successfully sent cheer for Player ID: ${playerId}`, 'recRoomResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to send cheer: ${errorText || response.statusText}`, 'recRoomResultsContent');
+            }
+        } catch (error) {
+            showResults('Error sending cheer: ' + error.message, 'recRoomResultsContent');
+        }
+    }
+
+    async function updateRecRoomBio() {
+        const token = getToken('recRoomAuthToken');
+        if (!token) return;
+        
+        const newBio = document.getElementById('recRoomNewBio').value.trim();
+        
+        if (!newBio) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a new bio.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const formData = new FormData();
+            formData.append('bio', newBio);
+            
+            const response = await fetch('https://zopzsniff.xyz/account/me/bio', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                showResults('Bio updated successfully', 'recRoomResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to update bio: ${errorText || response.statusText}`, 'recRoomResultsContent');
+            }
+        } catch (error) {
+            showResults('Error updating bio: ' + error.message, 'recRoomResultsContent');
+        }
+    }
+
+    async function getRecRoomProfile() {
+        const token = getToken('recRoomAuthToken');
+        if (!token) return;
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/account/me', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'recRoomResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to get profile: ${errorText || response.statusText}`, 'recRoomResultsContent');
+            }
+        } catch (error) {
+            showResults('Error getting profile: ' + error.message, 'recRoomResultsContent');
+        }
+    }
+
+    // Xbox API Functions
+    async function getXboxProfile() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        try {
+            const response = await fetch('https://profile.xboxlive.com/users/me/profile/settings?settings=Gamertag', {
+                method: 'GET',
+                headers: { 
+                    'Authorization': token,
+                    'x-xbl-contract-version': '2'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to get profile: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error getting profile: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    async function getXboxPartyStatus() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const xuid = document.getElementById('xboxTargetXuid').value.trim();
+        
+        if (!xuid) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a target XUID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/api/xbox/party/get', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    token: token,
+                    xuid: xuid
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to get party status: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error getting party status: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    async function makeXboxUnkickable() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const xuid = document.getElementById('xboxTargetXuid').value.trim();
+        
+        if (!xuid) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a target XUID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/api/xbox/party/nokick/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    token: token,
+                    xuid: xuid
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to make party unkickable: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error making party unkickable: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    async function openXboxParty() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const xuid = document.getElementById('xboxTargetXuid').value.trim();
+        
+        if (!xuid) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a target XUID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/api/xbox/party/open/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    token: token,
+                    xuid: xuid
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to open party: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error opening party: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    async function closeXboxParty() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const xuid = document.getElementById('xboxTargetXuid').value.trim();
+        
+        if (!xuid) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a target XUID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch('https://zopzsniff.xyz/api/xbox/party/close/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    token: token,
+                    xuid: xuid
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                showResults(data, 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to close party: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error closing party: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    async function crashXboxPartyHost() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const xuid = document.getElementById('xboxTargetXuid').value.trim();
+        
+        if (!xuid) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please enter a target XUID.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will attempt to crash the party host. Continue?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#7289da',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, crash host',
+            background: '#1a1a1a',
+            customClass: {
+                popup: 'border border-white/10 rounded-xl',
+                title: 'text-white',
+                htmlContainer: 'text-gray-300',
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('https://zopzsniff.xyz/api/xbox/party/hostcrash/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            token: token,
+                            xuid: xuid
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        showResults(data, 'xboxResultsContent');
+                    } else {
+                        const errorText = await response.text();
+                        showResults(`Failed to crash party host: ${errorText || response.statusText}`, 'xboxResultsContent');
+                    }
+                } catch (error) {
+                    showResults('Error crashing party host: ' + error.message, 'xboxResultsContent');
+                }
+            }
+        });
+    }
+
+    async function sendXboxFeedback() {
+        const token = getToken('xboxAuthToken');
+        if (!token) return;
+        
+        const targetXuid = document.getElementById('xboxFeedbackXuid').value.trim();
+        const reason = document.getElementById('xboxFeedbackReason').value.trim();
+        
+        if (!targetXuid || !reason) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please fill in all required fields.',
+                icon: 'error',
+                confirmButtonColor: '#7289da',
+                background: '#1a1a1a'
+            });
+            return;
+        }
+        
+        try {
+            const response = await fetch(`https://reputation.xboxlive.com/users/xuid(${targetXuid})/feedback`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': token,
+                    'Content-Type': 'application/json',
+                    'x-xbl-contract-version': '101'
+                },
+                body: JSON.stringify({
+                    feedbackType: 'CommsVoiceMessage',
+                    textReason: reason,
+                    evidenceId: null,
+                    feedbackContext: 'User'
+                })
+            });
+            
+            if (response.ok) {
+                showResults('Feedback sent successfully!', 'xboxResultsContent');
+            } else {
+                const errorText = await response.text();
+                showResults(`Failed to send feedback: ${errorText || response.statusText}`, 'xboxResultsContent');
+            }
+        } catch (error) {
+            showResults('Error sending feedback: ' + error.message, 'xboxResultsContent');
+        }
+    }
+
+    function toggleTokenVisibility(tokenId, iconId) {
+        const tokenInput = document.getElementById(tokenId);
+        const toggleIcon = document.getElementById(iconId);
+        
+        if (tokenInput.type === 'password') {
+            tokenInput.type = 'text';
+            toggleIcon.className = 'bi bi-eye-slash';
+        } else {
+            tokenInput.type = 'password';
+            toggleIcon.className = 'bi bi-eye';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        sessionStorage.removeItem('keyRedeemed');
+        sessionStorage.removeItem('redemptionTime');
+        
+        updateDropdownContent();
+        updateSettingsModal();
+        
+        document.body.style.opacity = '0';
+        setTimeout(() => {
+            document.body.style.transition = 'opacity 0.3s ease-in-out';
+            document.body.style.opacity = '1';
+        }, 100);
+    });
+    </script>
+    <style>
+    [id$="Dropdown"] {
+        transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+    }
+    [id$="Dropdown"]:not(.hidden) {
+        animation: dropdownFade 150ms ease-out;
+    }
+    @keyframes dropdownFade {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    body {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #7289da;
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #5865f2;
+    }
+    </style>
+    <link href="https://cdn.sell.app/embed/style.css" rel="stylesheet" />
+</head>
+
+<body class="bg-dark text-white min-h-screen">
+    <% function programNav(programs) { %>
+        <% if (programs.some(program => program.name === "zopzsniff")) { %>
+            <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" href="../assets/zopzfiles/ZOPZ_SNIFF.exe">
+                <i class="bi bi-download mr-2"></i>Download
+            </a>
+        <% } else { %>
+            <a class="block px-4 py-2 text-sm hover:bg-primary/20 rounded-lg transition-colors" target="_blank" data-sell-store="55876" data-sell-product="278367" data-sell-darkmode="true" data-sell-theme="">
+                <i class="bi bi-cart mr-2"></i>Buy ZOPZ SNIFF
+            </a>
+        <% } %>
+    <% } %>
+
+    <nav class="fixed top-0 left-0 right-0 bg-dark-deeper border-b border-white/10 backdrop-blur-md z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="text-primary text-xl font-bold">ZOPZ SNIFF</a>
+                <div class="hidden md:flex items-center space-x-4">
+
+                    <button class="tab-nav-button nav-button px-4 py-2 bg-primary/20 text-primary transition-colors flex items-center gap-2 rounded-lg" onclick="switchTab('dashboard')">
+                        <i class="bi bi-house-door"></i>
+                        Dashboard
+                    </button>
+                    <button class="tab-nav-button nav-button px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2 rounded-lg" onclick="switchTab('setup')">
+                        <i class="bi bi-gear-wide-connected"></i>
+                        Setup
+                    </button>
+                    <button class="tab-nav-button nav-button px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2 rounded-lg" onclick="switchTab('security')">
+                        <i class="bi bi-shield-check"></i>
+                        Security
+                    </button>
+
+<% if (user && user.programs.some(program => program.name === "zopzsniff")) { %>
+<div class="relative">
+    <button class="nav-button px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('toolsDropdown')">
+        <i class="bi bi-tools"></i>
+        Tools
+    </button>
+    <div id="toolsDropdown" class="hidden absolute left-0 mt-2 w-48 rounded-lg shadow-lg bg-dark-deeper border border-white/10">
+        <div class="py-1">
+            <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="switchTab('recroom')">
+                <i class="bi bi-controller mr-2"></i>Rec Room
+            </a>
+            <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="switchTab('xbox')">
+                <i class="bi bi-xbox mr-2"></i>Xbox
+            </a>
+        </div>
+    </div>
+</div>
+<% } %>
+
+                    
+                    <% if (user) { %>
+                    <div class="relative">
+                        <button class="nav-button px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('clientDropdown')">
+                            <i class="bi bi-person-gear"></i>
+                            Client
+                        </button>
+                        <div id="clientDropdown" class="hidden absolute left-0 mt-2 w-48 rounded-lg shadow-lg bg-dark-deeper border border-white/10">
+                            <div class="py-1">
+                                <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="openSettingsModal()">
+                                    <i class="bi bi-gear mr-2"></i>Settings
+                                </a>
+                                <div class="download-section">
+                                    <%= programNav(user.programs) %>
+                                </div>
+                            </div>
+                            <div class="py-1 border-t border-white/10">
+                                <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="openRedeemModal()">
+                                    <i class="bi bi-key mr-2"></i>Redeem Key
+                                </a>
+                            </div>
+                            <div class="py-1 border-t border-white/10">
+                                <a class="block px-4 py-2 text-sm hover:bg-red-500/20 transition-colors cursor-pointer text-red-400" onclick="Logout()">
+                                    <i class="bi bi-box-arrow-right mr-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <% if (user.level > 1) { %>
+                    <div class="relative">
+                        <button class="nav-button px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('adminDropdown')">
+                            <i class="bi bi-shield-check"></i>
+                            Admin
+                        </button>
+                        <div id="adminDropdown" class="hidden absolute left-0 mt-2 w-48 rounded-lg shadow-lg bg-dark-deeper border border-white/10">
+                            <div class="py-1">
+                                <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors" href="/dash/admin/users">
+                                    <i class="bi bi-people mr-2"></i>Users
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                    <% } %>
+                </div>
+                <button class="md:hidden nav-button px-2 py-1 text-white hover:text-primary transition-colors" onclick="toggleDropdown('mobileMenu')">
+                    <i class="bi bi-list text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden border-t border-white/10 bg-dark-deeper">
+            <div class="px-4 py-2 space-y-1">
+                <button class="w-full text-left px-4 py-2 text-primary bg-primary/20 transition-colors flex items-center gap-2 rounded-lg" onclick="switchTab('dashboard')">
+                    <i class="bi bi-house-door"></i>
+                    Dashboard
+                </button>
+                <button class="w-full text-left px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="switchTab('setup')">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    Setup
+                </button>
+                <button class="w-full text-left px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="switchTab('security')">
+                    <i class="bi bi-shield-check"></i>
+                    Security
+                </button>
+                <% if (user) { %>
+                <button class="w-full text-left px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('mobileToolsDropdown')">
+                    <i class="bi bi-tools"></i>
+                    Tools
+                </button>
+                <div id="mobileToolsDropdown" class="hidden pl-4 space-y-1">
+                    <% if (user.programs.some(program => program.name === "zopzsniff")) { %>
+                    <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="switchTab('recroom')">
+                        <i class="bi bi-controller mr-2"></i>Rec Room
+                    </a>
+                    <% } %>
+                    <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="switchTab('xbox')">
+                        <i class="bi bi-xbox mr-2"></i>Xbox
+                    </a>
+                </div>
+                <% } %>
+                
+                <% if (user) { %>
+                <button class="w-full text-left px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('mobileClientDropdown')">
+                    <i class="bi bi-person-gear"></i>
+                    Client
+                </button>
+                <div id="mobileClientDropdown" class="hidden pl-4 space-y-1">
+                    <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="openSettingsModal()">
+                        <i class="bi bi-gear mr-2"></i>Settings
+                    </a>
+                    <div class="download-section">
+                        <%= programNav(user.programs) %>
+                    </div>
+                    <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors cursor-pointer" onclick="openRedeemModal()">
+                        <i class="bi bi-key mr-2"></i>Redeem Key
+                    </a>
+                    <a class="block px-4 py-2 text-sm hover:bg-red-500/20 transition-colors cursor-pointer text-red-400" onclick="Logout()">
+                        <i class="bi bi-box-arrow-right mr-2"></i>Logout
+                    </a>
+                </div>
+                <% if (user.level > 1) { %>
+                <button class="w-full text-left px-4 py-2 text-white hover:text-primary transition-colors flex items-center gap-2" onclick="toggleDropdown('mobileAdminDropdown')">
+                    <i class="bi bi-shield-check"></i>
+                    Admin
+                </button>
+                <div id="mobileAdminDropdown" class="hidden pl-4 space-y-1">
+                    <a class="block px-4 py-2 text-sm hover:bg-primary/20 transition-colors" href="/dash/admin/users">
+                        <i class="bi bi-people mr-2"></i>Users
+                    </a>
+                </div>
+                <% } %>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-16">
+        <div id="dashboardTab" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1">
+                    <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg transition-all duration-300 hover:shadow-xl">
+                        <div class="p-4 border-b border-white/10 flex items-center gap-2">
+                            <i class="bi bi-shield-lock text-primary"></i>
+                            <span class="font-semibold">Terms of Service</span>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div>
+                                <h3 class="text-primary font-semibold mb-2">End of Service</h3>
+                                <p class="text-gray-300">ZOPZ SNIFF's End-of-Service (EOS) marks the cessation of our services. Upon shutdown or discontinuation, users lose access to their plans.</p>
+                            </div>
+                            <div>
+                                <h3 class="text-primary font-semibold mb-2">Return Policy</h3>
+                                <p class="text-gray-300">All purchases are considered final and non-refundable. We strongly advise careful consideration prior to making a purchase. Support services are available for inquiries and assistance by dming via "Contact Info".</p>
+                            </div>
+                            <div>
+                                <h3 class="text-primary font-semibold mb-2">Updates & Announcements</h3>
+                                <p class="text-gray-300">ZOPZ SNIFF Version 5.0.0.0 Released
+
+                                    We're excited to announce that Version 5.0.0.0 of ZOPZ SNIFF has officially been released to the public!
+                                    
+                                    Thank you for your patience and continued support.
+                                    Enjoy the new version and the improved service experience.
+                                    
+                                    — The ZOPZ Team</p>
+                            </div>
+                            <div>
+                                <h3 class="text-primary font-semibold mb-2">Terms of Service</h3>
+                                <ul class="space-y-2 text-gray-300">
+                                    <li class="flex gap-2">
+                                        <span class="text-primary">•</span>
+                                        <span>No leaking or sharing login details. Users must not share login details, resulting in irrevocable bans unless proven false.</span>
+                                    </li>
+                                    <li class="flex gap-2">
+                                        <span class="text-primary">•</span>
+                                        <span>Sharing or trying to harm ZOPZ SNIFF's Site will result in account termination.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-primary/10 rounded-lg">
+                                    <i class="bi bi-people-fill text-2xl text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-400 text-sm">Total Users</h3>
+                                    <p class="text-3xl font-bold text-primary"><%= totalUsers %></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-gray-400 text-sm">Username</h3>
+                                    <p class="text-2xl font-bold text-primary"><%= user.username %></p>
+                                </div>
+                                <div>
+                                    <h3 class="text-gray-400 text-sm">Level</h3>
+                                    <p class="text-2xl font-bold text-primary"><%= user.level %></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div class="p-4 border-b border-white/10 flex items-center gap-2">
+                            <i class="bi bi-envelope-fill text-primary"></i>
+                            <span class="font-semibold">Contact Info</span>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-400 mb-4">Feel free to reach out to us through the following contact methods:</p>
+                            <div class="space-y-2">
+                                <a href="https://discord.gg/qYMzZ8wsy2" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group">
+                                    <i class="bi bi-discord text-xl text-primary group-hover:scale-110 transition-transform"></i>
+                                    <span>Discord</span>
+                                </a>
+                                <a href="https://t.me/projectzopzads" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group">
+                                    <i class="bi bi-telegram text-xl text-primary group-hover:scale-110 transition-transform"></i>
+                                    <span>Telegram</span>
+                                </a>
+                                <a href="mailto:Fire004005@gmail.com" class="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group">
+                                    <i class="bi bi-envelope text-xl text-primary group-hover:scale-110 transition-transform"></i>
+                                    <span>Email</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="setupTab" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">Setup Guide</h1>
+                <p class="text-gray-400">Complete step-by-step installation guide for ZOPZ SNIFF</p>
+            </div>
+
+            <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                <div class="p-6 border-b border-white/10">
+                    <h2 class="text-2xl font-semibold text-primary flex items-center gap-2">
+                        <i class="bi bi-gear-wide-connected"></i>
+                        How to Set Up ZOPZ SNIFF
+                    </h2>
+                </div>
+                <div class="p-8">
+                    <div class="space-y-8">
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-lg font-bold">1</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-white mb-3">Download</h3>
+                                <p class="text-gray-300 text-lg mb-4">Go to the <strong class="text-primary">"Client"</strong> section and click on <strong class="text-primary">"Download"</strong> to start the installation.</p>
+                                <div class="bg-dark-deeper rounded-lg p-4 border border-white/10">
+                                    <p class="text-sm text-gray-400 mb-2">💡 Tip:</p>
+                                    <p class="text-sm text-gray-300">Make sure to download from the official Client section to ensure you get the latest version.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-lg font-bold">2</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-white mb-3">Handle WinDriver Errors</h3>
+                                <p class="text-gray-300 text-lg mb-4">If you receive a <strong class="text-yellow-400">WinDriver</strong> or similar error during setup, you'll need to install <strong class="text-primary">Npcap</strong>.</p>
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="bi bi-exclamation-triangle text-yellow-400"></i>
+                                        <span class="font-semibold text-yellow-400">Common Error</span>
+                                    </div>
+                                    <p class="text-sm text-gray-300">This error occurs when the required network capture driver is not installed.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-lg font-bold">3</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-white mb-3">Install Npcap</h3>
+                                <p class="text-gray-300 text-lg mb-4">To install Npcap, return to the <strong class="text-primary">"Client"</strong> section and click on <strong class="text-primary">"Npcap"</strong>.</p>
+                                <div class="bg-dark-deeper rounded-lg p-4 border border-white/10 mb-4">
+                                    <p class="text-sm text-gray-400 mb-2">Alternative download link:</p>
+                                    <a href="https://npcap.com/dist/npcap-1.81.exe" class="text-primary hover:text-secondary transition-colors text-lg font-medium underline" target="_blank">
+                                        https://npcap.com/dist/npcap-1.81.exe
+                                    </a>
+                                </div>
+                                <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="bi bi-info-circle text-blue-400"></i>
+                                        <span class="font-semibold text-blue-400">Important</span>
+                                    </div>
+                                    <p class="text-sm text-gray-300">Always download Npcap from the official website to ensure security and compatibility.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-lg font-bold">4</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-white mb-3">Configure Npcap Installation</h3>
+                                <p class="text-gray-300 text-lg mb-4">Make sure the following options are configured correctly during installation:</p>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                                        <h4 class="font-semibold text-green-400 mb-3 flex items-center gap-2">
+                                            <i class="bi bi-check-circle"></i>
+                                            Required Options (Check These)
+                                        </h4>
+                                        <ul class="space-y-2 text-sm text-gray-300">
+                                            <li class="flex items-start gap-2">
+                                                <span class="text-green-400 mt-1">✓</span>
+                                                <span><strong>"Support raw 802.11 traffic (and monitor mode) for wireless adapters"</strong></span>
+                                            </li>
+                                            <li class="flex items-start gap-2">
+                                                <span class="text-green-400 mt-1">✓</span>
+                                                <span><strong>"Install Npcap in WinPcap API-compatible Mode"</strong></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                                        <h4 class="font-semibold text-red-400 mb-3 flex items-center gap-2">
+                                            <i class="bi bi-x-circle"></i>
+                                            Avoid This Option (Keep Unchecked)
+                                        </h4>
+                                        <ul class="space-y-2 text-sm text-gray-300">
+                                            <li class="flex items-start gap-2">
+                                                <span class="text-red-400 mt-1">✗</span>
+                                                <span><strong>"Admin-only mode"</strong> (keep unchecked)</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                                    <h4 class="font-semibold text-primary mb-2">Final Steps:</h4>
+                                    <ol class="list-decimal list-inside space-y-1 text-sm text-gray-300">
+                                        <li>Click <strong>Install</strong></li>
+                                        <li>Open <strong>ZOPZ SNIFF</strong></li>
+                                        <li><strong>Login</strong> with your credentials</li>
+                                        <li><strong>Start using</strong> ZOPZ SNIFF!</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="bi bi-check-circle-fill text-green-400 text-2xl"></i>
+                            <h3 class="text-xl font-semibold text-green-400">Setup Complete!</h3>
+                        </div>
+                        <p class="text-gray-300">Once you've completed all these steps, ZOPZ SNIFF should be ready to use. If you encounter any issues, check the Security tab for troubleshooting guides.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="securityTab" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">Security Center</h1>
+                <p class="text-gray-400">Error handling, troubleshooting, and security best practices</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-dark-card rounded-xl border border-white/10 p-6 hover:border-green-500/30 transition-all duration-300">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-green-500/10 rounded-lg">
+                            <i class="bi bi-shield-check text-2xl text-green-500"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-semibold text-white">System Status</h3>
+                            <p class="text-green-400 text-sm">All systems operational</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-xl border border-white/10 p-6 hover:border-yellow-500/30 transition-all duration-300">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-yellow-500/10 rounded-lg">
+                            <i class="bi bi-exclamation-triangle text-2xl text-yellow-500"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-semibold text-white">Active Warnings</h3>
+                            <p class="text-yellow-400 text-sm">2 minor issues detected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Common Errors & Solutions
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-red-500/20 transition-colors" onclick="showErrorDetails('auth-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-x-circle text-red-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-red-400">Authentication Failed</h3>
+                                        <p class="text-gray-400 text-sm">Login credentials invalid</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-red-500/20 transition-colors" onclick="showErrorDetails('connection-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-wifi-off text-red-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-red-400">Connection Error</h3>
+                                        <p class="text-gray-400 text-sm">Unable to connect to servers</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 cursor-pointer hover:bg-yellow-500/20 transition-colors" onclick="showErrorDetails('npcap-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-exclamation-triangle text-yellow-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-yellow-400">Npcap Installation</h3>
+                                        <p class="text-gray-400 text-sm">Driver not properly configured</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-red-500/20 transition-colors" onclick="showErrorDetails('permission-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-shield-x text-red-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-red-400">Permission Denied</h3>
+                                        <p class="text-gray-400 text-sm">Administrator rights required</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-red-500/20 transition-colors" onclick="showErrorDetails('windriver-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-exclamation-diamond text-red-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-red-400">WinDriver Error</h3>
+                                        <p class="text-gray-400 text-sm">Service not running</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 cursor-pointer hover:bg-orange-500/20 transition-colors" onclick="showErrorDetails('firewall-error')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-shield-slash text-orange-400"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-orange-400">Firewall Blocking</h3>
+                                        <p class="text-gray-400 text-sm">Connection blocked by firewall</p>
+                                    </div>
+                                </div>
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-shield-lock"></i>
+                            Security Best Practices
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Keep Software Updated</h3>
+                                    <p class="text-gray-400 text-sm">Always use the latest version of ZOPZ SNIFF for security patches</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Use Strong Passwords</h3>
+                                    <p class="text-gray-400 text-sm">Create unique, complex passwords for your account</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Secure Network</h3>
+                                    <p class="text-gray-400 text-sm">Only use ZOPZ SNIFF on trusted networks</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Regular Backups</h3>
+                                    <p class="text-gray-400 text-sm">Backup your configuration and important data</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Monitor Activity</h3>
+                                    <p class="text-gray-400 text-sm">Regularly check your account for suspicious activity</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-check-circle text-green-400 mt-1"></i>
+                                <div>
+                                    <h3 class="font-semibold text-white">Use VPN Carefully</h3>
+                                    <p class="text-gray-400 text-sm">Some VPNs may interfere with ZOPZ SNIFF functionality</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% if (user && user.programs.some(program => program.name === "zopzsniff")) { %>
+        <div id="recroomTab" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">Rec Room Tool</h1>
+                <p class="text-gray-400">Advanced Rec Room account management and interaction tools</p>
+            </div>
+            <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg mb-6">
+                <div class="p-6 border-b border-white/10">
+                    <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                        <i class="bi bi-key-fill"></i>
+                        Authentication
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label for="recRoomAuthToken" class="block text-sm font-medium text-gray-400 mb-2">Authentication Token</label>
+                            <div class="flex gap-2">
+                                <input type="password" id="recRoomAuthToken" class="flex-1 px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter your Rec Room token">
+                                <button onclick="toggleTokenVisibility('recRoomAuthToken', 'recRoomTokenToggleIcon')" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                                    <i class="bi bi-eye" id="recRoomTokenToggleIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="recRoomSearchUsername" class="block text-sm font-medium text-gray-400 mb-2">Search Username</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="recRoomSearchUsername" class="flex-1 px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter username to search">
+                                <button onclick="searchRecRoomAccount()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-person-gear"></i>
+                            User Actions
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="recRoomTargetUserId" class="block text-sm font-medium text-gray-400 mb-2">Target User ID</label>
+                            <input type="number" id="recRoomTargetUserId" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter user ID">
+                        </div>
+                        
+                        <button onclick="sendRecRoomCheer()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-emoji-smile"></i>
+                            Send Cheer
+                        </button>
+
+                        <button onclick="getRecRoomProfile()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-person"></i>
+                            Get My Profile
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-flag"></i>
+                            Reporting Tools
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="recRoomReportUserId" class="block text-sm font-medium text-gray-400 mb-2">User ID to Report</label>
+                            <input type="number" id="recRoomReportUserId" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter user ID">
+                        </div>
+                        
+                        <div>
+                            <label for="recRoomReportCategory" class="block text-sm font-medium text-gray-400 mb-2">Report Category</label>
+                            <select id="recRoomReportCategory" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white">
+                                <option value="1">Harassment</option>
+                                <option value="2">Inappropriate Content</option>
+                                <option value="3">Cheating</option>
+                                <option value="4">Spam</option>
+                                <option value="5">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="recRoomReportDetails" class="block text-sm font-medium text-gray-400 mb-2">Report Details</label>
+                            <textarea id="recRoomReportDetails" rows="3" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white resize-none" placeholder="Describe the issue..."></textarea>
+                        </div>
+                        
+                        <button onclick="reportRecRoomUser()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-flag-fill"></i>
+                            Submit Report
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-person-circle"></i>
+                            Profile Management
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="recRoomNewBio" class="block text-sm font-medium text-gray-400 mb-2">Update Bio</label>
+                            <textarea id="recRoomNewBio" rows="3" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white resize-none" placeholder="Enter new bio..."></textarea>
+                        </div>
+                        
+                        <button onclick="updateRecRoomBio()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-pencil-square"></i>
+                            Update Bio
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="recRoomSearchResults" class="hidden mb-6">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-search"></i>
+                            Search Results
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div id="recRoomAccountInfo" class="bg-dark-deeper rounded-lg p-4"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="recRoomResults" class="hidden">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-terminal"></i>
+                            Raw Response
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div id="recRoomResultsContent" class="bg-dark-deeper rounded-lg p-4 font-mono text-sm text-green-400 max-h-96 overflow-y-auto whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+        <div id="xboxTab" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">Xbox Tools</h1>
+                <p class="text-gray-400">Xbox Live party management and gaming tools</p>
+            </div>
+            <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg mb-6">
+                <div class="p-6 border-b border-white/10">
+                    <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                        <i class="bi bi-key-fill"></i>
+                        Authentication
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label for="xboxAuthToken" class="block text-sm font-medium text-gray-400 mb-2">Xbox Authentication Token</label>
+                            <div class="flex gap-2">
+                                <input type="password" id="xboxAuthToken" class="flex-1 px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter your Xbox token">
+                                <button onclick="toggleTokenVisibility('xboxAuthToken', 'xboxTokenToggleIcon')" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                                    <i class="bi bi-eye" id="xboxTokenToggleIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="xboxTargetXuid" class="block text-sm font-medium text-gray-400 mb-2">Target XUID</label>
+                            <input type="text" id="xboxTargetXuid" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter target XUID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-person-gear"></i>
+                            Profile Tools
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button onclick="getXboxProfile()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-person"></i>
+                            Get My Profile
+                        </button>
+                        
+                        <button onclick="getXboxPartyStatus()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-people"></i>
+                            Get Party Status
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-people-fill"></i>
+                            Party Management
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button onclick="makeXboxUnkickable()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-shield-check"></i>
+                            Make Unkickable
+                        </button>
+                        
+                        <button onclick="openXboxParty()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-unlock"></i>
+                            Open Party
+                        </button>
+                        
+                        <button onclick="closeXboxParty()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-lock"></i>
+                            Close Party
+                        </button>
+                        
+                        <button onclick="crashXboxPartyHost()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Crash Party Host
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-flag"></i>
+                            Feedback Tools
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="xboxFeedbackXuid" class="block text-sm font-medium text-gray-400 mb-2">Target XUID</label>
+                            <input type="text" id="xboxFeedbackXuid" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter target XUID">
+                        </div>
+                        
+                        <div>
+                            <label for="xboxFeedbackReason" class="block text-sm font-medium text-gray-400 mb-2">Feedback Reason</label>
+                            <textarea id="xboxFeedbackReason" rows="3" class="w-full px-4 py-2 bg-dark-deeper border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white resize-none" placeholder="Enter feedback reason..."></textarea>
+                        </div>
+                        
+                        <button onclick="sendXboxFeedback()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="bi bi-flag-fill"></i>
+                            Send Feedback
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="xboxResults" class="hidden">
+                <div class="bg-dark-card rounded-xl border border-white/10 shadow-lg">
+                    <div class="p-6 border-b border-white/10">
+                        <h2 class="text-xl font-semibold text-primary flex items-center gap-2">
+                            <i class="bi bi-terminal"></i>
+                            Raw Response
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div id="xboxResultsContent" class="bg-dark-deeper rounded-lg p-4 font-mono text-sm text-green-400 max-h-96 overflow-y-auto whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closeSettingsModal()"></div>
+        <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="modal-content w-full max-w-2xl transform rounded-2xl bg-dark-card p-6 shadow-xl transition-all duration-300 opacity-0 translate-y-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-white">Settings</h3>
+                        <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-dark-deeper rounded-xl p-6 border border-white/10">
+                            <h4 class="text-lg font-semibold mb-4 text-primary">Password Management</h4>
+                            <form class="space-y-4">
+                                <div>
+                                    <label for="currentPassword" class="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="bi bi-key text-gray-400"></i>
+                                        </div>
+                                        <input type="password" id="currentPassword" name="currentPassword" class="block w-full pl-10 pr-4 py-2 bg-dark border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter your current password" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="newPassword" class="block text-sm font-medium text-gray-400 mb-1">New Password</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="bi bi-lock text-gray-400"></i>
+                                        </div>
+                                        <input type="password" id="newPassword" name="newPassword" class="block w-full pl-10 pr-4 py-2 bg-dark border border-white/10 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-white" placeholder="Enter your new password">
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2" hx-post="/dash/client/reset/password" hx-target="#htmxAlertContainer" hx-disabled-elt="this" hx-indicator="#htmxLoadingContainer">
+                                    <i class="bi bi-check2-circle"></i>
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="bg-dark-deeper rounded-xl p-6 border border-white/10">
+                            <h4 class="text-lg font-semibold mb-4 text-primary">Your Programs</h4>
+                            <div id="programsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <% user.programs.forEach(function(program) { %>
+                                <div class="bg-dark-card rounded-lg p-4 border border-white/10 hover:border-primary/30 transition-colors">
+                                    <h5 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                                        <i class="bi bi-app text-primary"></i>
+                                        <%= program.name %>
+                                    </h5>
+                                    <div class="space-y-2 text-sm text-gray-400 mb-4">
+                                        <p>
+                                            <span class="inline-block w-24">Last Reset:</span>
+                                            <%= new Date(program.last_reset).toISOString().replace('T', ' ').substring(0, 19) %>
+                                        </p>
+                                        <p>
+                                            <span class="inline-block w-24">Expiry:</span>
+                                            <%= new Date(program.expiry).toISOString().replace('T', ' ').substring(0, 19) %>
+                                        </p>
+                                    </div>
+                                    <button class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2" onclick="toggleHWIDReset('<%= program.name %>')">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        Reset HWID
+                                    </button>
+                                </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-container"></div>
+    <div id="container"></div>
+    <div class="toast-container fixed bottom-0 right-0 p-4" id="toastContainer"></div>
+    <div id="htmxAlertContainer" class="fixed bottom-0 right-0 p-4 z-[1050]"></div>
+    <div id="htmxLoadingContainer" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 z-[1050]">
+        <div class="spinner-border htmx-indicator text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <script src="https://cdn.sell.app/embed/script.js" type="module"></script>
+</body>
+</html>

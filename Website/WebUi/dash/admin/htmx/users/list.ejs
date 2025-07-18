@@ -1,0 +1,195 @@
+<% function renderProgramPlan(program) { %>
+    <div class="row mb-2">
+        <div class="col-12 col-md">
+            <input type="text" name="appName[]" class="form-control" placeholder="Application Name" value="<%= program.name %>">
+        </div>
+        <div class="col-12 col-md">
+            <input type="date" name="appExpiration[]" class="form-control">
+            <input type="hidden" value="<%= program.expiry %>">
+            <script>
+                (function() {
+                    const hiddenInput = (() => {
+                        let elem = document.currentScript.previousElementSibling;
+                        while (elem) {
+                            if (elem.tagName === 'INPUT' && elem.type === 'hidden') {
+                                return elem;
+                            }
+                            elem = elem.previousElementSibling;
+                        }
+                        return null;
+                    })();
+    
+                    if (hiddenInput) {
+                        const hiddenDateValue = hiddenInput.value;
+                        const dateObj = new Date(hiddenDateValue);
+                        const formattedDate = dateObj.toISOString().split('T')[0];
+                        let dateInput = hiddenInput.previousElementSibling;
+    
+                        while (dateInput && (dateInput.tagName !== 'INPUT' || dateInput.type !== 'date')) {
+                            dateInput = dateInput.previousElementSibling;
+                        }
+    
+                        if (dateInput && dateInput.type === 'date') {
+                            dateInput.value = formattedDate;
+                        }
+                    }
+                })();
+            </script>
+        </div>
+        <div class="col-12 col-md d-flex align-items-end">
+            <input type="text" name="hardwareIdentifier[]" class="form-control me-2" placeholder="Hardware Identifier" value="<%= program.hardware_identifier %>">
+            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove();">Remove</button>
+        </div>
+    </div>
+    <% } %>
+    
+    <% function userDisplay(listUser) { %>
+    <li class="list-group-item">
+        <div class="d-flex mb-3">
+            <div class="me-auto p-2">
+                <strong><%= listUser.username %></strong> - Level: <span class="text-primary"><%= listUser.level %></span>
+            </div>
+            <div class="p-2">
+                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#editUser<%= listUser.username %>" aria-expanded="false" aria-controls="editUser<%= listUser.username %>">
+                    Edit
+                </button>
+            </div>
+            <div class="p-2">
+                <button class="btn btn-link text-danger" type="button" hx-delete="/dash/admin/users" hx-target="#htmxAlertContainer"
+                        hx-include="[id='userEditForm<%= listUser.username %>']" hx-disabled-elt="this">
+                    Delete
+                </button>
+            </div>
+        </div>
+        <div class="collapse" id="editUser<%= listUser.username %>">
+            <div class="mt-3">
+                <form hx-put="/dash/admin/users" hx-target="#htmxAlertContainer" id="userEditForm<%= listUser.username %>">
+                    <input name="username" value="<%= listUser.username %>" type="hidden">
+                    <% if (user.level > listUser.level) { %>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="banned<%= listUser.username %>" name="banned" <%= listUser.Banned ? 'checked' : '' %>>
+                            <label class="form-check-label" for="banned<%= listUser.username %>">Banned</label>
+                        </div>
+                    </div>
+                    <% } %>
+                    <% if (listUser.level == 2) { %><input type="hidden" value="2" name="level"><% } %>
+                    <% if (listUser.level <= 1) { %>
+                    <div class="mb-3">
+                        <label for="userLevel<%= listUser.username %>" class="form-label">Level</label>
+                        <select class="form-select form-control" id="userLevel<%= listUser.username %>" name="level">
+                            <option value="0" <%= listUser.level == 0 ? 'selected' : '' %>>Normal</option>
+                            <option value="1" <%= listUser.level == 1 ? 'selected' : '' %>>Reseller</option>
+                        </select>
+                    </div>
+                    <% } %>
+                    <button type="button" class="btn btn-secondary mb-2" onclick="addApplication(this)">Add Application</button>
+                    <% if (listUser.programs && Array.isArray(listUser.programs)) { %>
+    <% listUser.programs.forEach(program => { %>
+        <%= renderProgramPlan(program) %>
+    <% }); %>
+<% } else { %>
+    <p>No programs available</p>
+<% } %>
+                    <div class="mt-3"></div>
+                    <button type="submit" class="btn btn-primary" hx-disabled-elt="this" hx-indicator="#htmxLoadingContainer">Save</button>
+                </form>
+            </div>
+        </div>
+    </li>
+    <% } %>
+    
+    <div class="container mt-4" style="background-color: rgb(25, 25, 25); color: white;">
+        <h3>User List</h3>
+        <div class="mb-3">
+            <input type="text" id="searchUser" class="form-control" placeholder="Search for a user..." onkeyup="searchUser()">
+        </div>
+        <ul class="list-group" id="userList">
+            <% users.forEach(listUser => { %> <%= userDisplay(listUser) %> <% }); %>
+        </ul>
+    </div>
+    
+    <script>
+        function searchUser() {
+            const searchQuery = document.getElementById('searchUser').value.toLowerCase();
+            const usersList = document.getElementById('userList').children;
+    
+            for (let i = 0; i < usersList.length; i++) {
+                const userItem = usersList[i];
+                const username = userItem.querySelector('strong').textContent.toLowerCase();
+    
+                if (username.includes(searchQuery)) {
+                    userItem.style.display = '';
+                } else {
+                    userItem.style.display = 'none';
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        function createAppOption() {
+            const appDiv = document.createElement('div');
+            appDiv.className = 'row mb-2';
+    
+            const nameCol = document.createElement('div');
+            nameCol.className = 'col-12 col-md';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.name = 'appName[]';
+            nameInput.className = 'form-control';
+            nameInput.placeholder = 'Application Name';
+            nameCol.appendChild(nameInput);
+    
+            const dateCol = document.createElement('div');
+            dateCol.className = 'col-12 col-md';
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.name = 'appExpiration[]';
+            dateInput.className = 'form-control';
+    
+            const today = new Date();
+            today.setDate(today.getDate() + 1);
+            const minDate = today.toISOString().split('T')[0];
+            dateInput.min = minDate;
+            dateInput.value = minDate;
+    
+            dateCol.appendChild(dateInput);
+    
+            const infoRemoveCol = document.createElement('div');
+            infoRemoveCol.className = 'col-12 col-md d-flex align-items-end';
+    
+            const infoInput = document.createElement('input');
+            infoInput.type = 'text';
+            infoInput.name = 'hardwareIdentifier[]';
+            infoInput.className = 'form-control me-2';
+            infoInput.placeholder = 'Additional Information';
+            infoRemoveCol.appendChild(infoInput);
+    
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-danger btn-sm';
+            removeButton.textContent = 'Remove';
+            removeButton.onclick = function () {
+                appDiv.remove();
+            };
+            infoRemoveCol.appendChild(removeButton);
+    
+            appDiv.appendChild(nameCol);
+            appDiv.appendChild(dateCol);
+            appDiv.appendChild(infoRemoveCol);
+    
+            nameCol.classList.add('pt-2');
+            dateCol.classList.add('pt-2');
+            infoRemoveCol.classList.add('pt-2');
+    
+            return appDiv;
+        }
+    
+        function addApplication(button) {
+            const nextDiv = button.nextElementSibling;
+            const newAppOption = createAppOption();
+            nextDiv.appendChild(newAppOption);
+        }
+    </script>
+    

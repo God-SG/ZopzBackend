@@ -1,0 +1,119 @@
+.form-control {
+    background-color: rgb(24, 26, 27) !important;
+    color: rgb(209, 205, 199) !important;
+}
+div:where(.swal2-container).swal2-backdrop-show, div:where(.swal2-container).swal2-noanimation {
+    background: rgba(5, 5, 5, 0.75) !important;
+}
+
+div:where(.swal2-container) div:where(.swal2-popup) {
+    background: #111111 !important;
+}
+
+div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm) {
+    background-color: #2a9fd6 !important;
+}
+
+body {
+    background-color: #0a0a0a !important;
+    color: #ffffff !important;
+}
+
+.card {
+    max-width: 600px !important;
+    border-radius: 12px !important;
+    border: 3px solid #0056b3 !important;
+    box-shadow: 0 8px 16px rgba(0, 86, 179, 0.5) !important;
+    background-color: rgba(20, 20, 20, 0.9) !important;
+    transition: transform 0.2s ease-in-out !important;
+    overflow: hidden !important;
+}
+
+.card:hover {
+    transform: scale(1.05) !important;
+}
+
+.card-header {
+    background-color: #0056b3 !important;
+    color: #ffffff !important;
+    padding: 12px 20px !important;
+    font-size: 1.25rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.card > div {
+    padding: 15px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+}
+
+.btn.btn-warning {
+    background-color: #ff0000 !important;
+    border-color: #cc0000 !important;
+    color: #ffffff !important;
+}
+
+.btn.btn-warning:hover {
+    background-color: #cc0000 !important;
+    border-color: #a30000 !important;
+}
+
+.text-primary, .font-weight-bold span {
+    color: #007bff !important;
+}
+.bi-person-fill {
+    color: #007bff !important;
+    font-size: 1.2rem !important;
+}
+.text-danger {
+    color: #dc3545 !important;
+}
+.font-weight-bold {
+    font-weight: 700 !important;
+    color: #007bff !important;
+}
+
+.navbar, .navbar-header, .navbar-brand {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
+}
+
+.navbar a {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    transition: color 0.3s ease !important;
+}
+
+.navbar a:hover {
+    color: #99ccff !important;
+}
+
+.navbar-nav .nav-link {
+    color: #ffffff !important;
+    padding: 10px 15px !important;
+}
+
+.navbar-toggler {
+    background-color: #0056b3 !important;
+    border-radius: 5px !important;
+    border: 2px solid #ffffff !important;
+}
+
+* {
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#messages li {
+    padding: 5px 10px;
+}

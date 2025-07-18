@@ -1,0 +1,60 @@
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="pricingModal" tabindex="-1" aria-labelledby="pricingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pricingModalLabel">Pricing Information for <%= program.name %></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <% program.prices.forEach(item => { %>
+                <button class="btn btn-primary price-btn" data-price="<%= item.price.toFixed(2) %>" data-days="<%= item.days %>">
+                    <%= item.days %> days
+                </button>
+                <% }); %>
+            </div>
+            <div class="modal-footer">
+                <p id="selectedPrice" class="text-muted">Select a plan to see the price</p>
+                <button
+                        id="buyButton"
+                        class="btn btn-primary"
+                        hx-post="/dash/order"
+                        hx-vals='{ "name": "<%= program.name %>", "price": "", "days": "" }'
+                        hx-trigger="click"
+                        data-bs-dismiss="modal"
+                        hx-target="#htmxAlertContainer"
+                        disabled>
+                    Buy
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    (() => {
+        console.log("we run")
+        const myModal = new bootstrap.Modal(document.getElementById('pricingModal'), {
+            keyboard: true
+        });
+        console.log("and our modal is " + myModal)
+        myModal.show();
+        const priceButtons = document.querySelectorAll('.price-btn');
+        const priceDisplay = document.getElementById('selectedPrice');
+        const buyButton = document.getElementById('buyButton');
+
+        priceButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const price = this.getAttribute('data-price');
+                const days = this.getAttribute('data-days');
+
+                priceDisplay.textContent = `Price: $${price}`;
+
+                buyButton.setAttribute('hx-vals', JSON.stringify({ 'name': '<%= program.name %>', 'price': price, 'days': parseInt(days, 10) }));
+                buyButton.disabled = false;  
+            });
+        });
+    })();
+</script>
